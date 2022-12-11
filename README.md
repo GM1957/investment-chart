@@ -1,34 +1,135 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+# Investment Chart
 
-First, run the development server:
+Highly customizable Investment chart for react  
+
+![](https://github.com/GM1957/investment-chart/blob/main/public/demo.png)
+## Installation and start the server
+
+Install all required packages:
 
 ```bash
-npm run dev
-# or
-yarn dev
+  npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Start the server:
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```bash
+  npm run dev
+```
+        
+## Usage/Example of InvestmentChart Component
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```javascript
+import React, { useState, useRef } from "react";
+import { useFetchInvestments } from "hooks";
+import { InvestmentChart, CurrencyInput } from "components";
+import { mockyToInvestDataModifier, debounce } from "helpers";
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+export default function Home() {
+  const [initialInvestment, setInitialInvestment] = useState(0);
+  const [montlyInvestment, setMontlyInvestment] = useState(0);
+  const initialInvRef: any = useRef();
+  const monthlyInvRef: any = useRef();
 
-## Learn More
+  const { data, isLoading, isRefetching } = useFetchInvestments({
+    initialInvestment,
+    montlyInvestment,
+    configs: [
+      {
+        refetchOnWindowFocus: false,
+        keepPreviousData: true,
+      },
+    ],
+  });
 
-To learn more about Next.js, take a look at the following resources:
+  const initialInvDebounce = debounce(
+    () => setInitialInvestment(Number(initialInvRef?.current?.value || 0)),
+    500
+  );
+  const monthlyInvDebounce = debounce(
+    () => setMontlyInvestment(Number(monthlyInvRef?.current?.value || 0)),
+    500
+  );
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+  return (
+    <div
+      style={{
+        marginTop: "10%",
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <div>
+        <div style={{ display: "flex" }}>
+          <div style={{ marginRight: "20px" }}>
+            <div style={{ fontSize: "12px", marginBottom: "5px" }}>
+              Initial investment
+            </div>
+            <CurrencyInput
+              ref={initialInvRef}
+              onChange={() => {
+                initialInvDebounce();
+              }}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: "12px", marginBottom: "5px" }}>
+              Monthly investment
+            </div>
+            <CurrencyInput
+              ref={monthlyInvRef}
+              onChange={() => {
+                monthlyInvDebounce();
+              }}
+            />
+          </div>
+        </div>
+        <InvestmentChart
+          data={mockyToInvestDataModifier(data || [])}
+          isLoading={isLoading || isRefetching}
+          id="chart-id"
+          height={400}
+          width={800}
+        />
+      </div>
+    </div>
+  );
+}
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## API Reference
+
+### Investment Chart Input Data (investmentChartData)
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `topBottomAreaRange` | `[number, number]` | in this range the range chart will be shown top 25% to bottom 10% |
+| `year` | `string` | x-axis label year |
+| `month` | `string` | month, which will be visible in the tooltip |
+| `benchmark` | `number` | benchmark value for benchmark line in the chart |
+| `median` | `number` | median value for median line in the chart |
+| `totalDeposit` | `number` | totalDeposit value for totalDeposit line in the chart |
+| `underPerformingBenchmark` | `number` | underPerformingBenchmark value to show the % of under performing p.a. |
+
+
+### Investment Chart Props
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `data` | `[investmentChartData]` | investmentChartData in array |
+| `isLoading` | `boolean` | is api fetching data or loading data |
+| `height` | `number or string` | height of the chart |
+| `width` | `number or string` | width of the chart |
+| `areaLineColor` | `string` | color of the area chart |
+| `benchMarkLineColor` | `string` | color of the benchMark Line chart |
+| `depositeLineColor` | `string` | color of the deposite Line chart |
+| `medianLineColor` | `string` | color of the median Line chart |
+| `id` | `string` | unique id for the chart |
+| `TooltipComponent` | `Component` | Callback component to make custom tooltip |
+| `totalDeposit` | `number` | totalDeposit value for totalDeposit line in the chart |
+| `underPerformingBenchmark` | `number` | underPerformingBenchmark value to show the % of under performing p.a. |
